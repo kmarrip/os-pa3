@@ -149,15 +149,15 @@ setsegs()
 	np = ((int)&etext + NBPG-1) / NBPG;	/* # code pages */
 	psd->sd_lolimit = np;
 	psd->sd_hilimit = np >> 16;
-#if 0
+// #if 0
 	psd = &gdt_copy[2];	/* kernel data segment */
-	psd->sd_lolimit = npages;
-	psd->sd_hilimit = npages >> 16;
+	psd->sd_lolimit = 0xffff;
+	psd->sd_hilimit = 0xf;
 
 	psd = &gdt_copy[3];	/* kernel stack segment */
-	psd->sd_lolimit = npages;
-	psd->sd_hilimit = npages >> 16; 
-#endif
+	psd->sd_lolimit = 0xffff;
+	psd->sd_hilimit = 0xf; 
+// #endif
 
 	psd = &gdt_copy[4];	/* bootp code segment */
 	psd->sd_lolimit = npages;   /* Allows execution of 0x100000 CODE */

@@ -48,6 +48,7 @@ typedef struct{
   int bs_vpno;				/* starting virtual page number */
   int bs_npages;			/* number of pages in the store */
   int bs_sem;				/* semaphore mechanism ?	*/
+  bsd_t bs_id;       /* Backing store ID */
 } bs_map_t;
 
 typedef struct{
@@ -59,11 +60,20 @@ typedef struct{
   int fr_dirty;
 }fr_map_t;
 
+typedef struct
+{
+  int pid;          /*  process id  */
+  int vpage;        /*  starting virtual page number  */
+  int npages;       /*  number of pages in the mapping  */
+  bsd_t store;      /*  backing store id  */
+} bs_map_entry_t;
+
+
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];
 /* Prototypes for required API calls */
 SYSCALL xmmap(int, bsd_t, int);
-SYSCALL xunmap(int);
+SYSCALL xmunmap(int);
 
 /* given calls for dealing with backing store */
 
@@ -75,6 +85,9 @@ SYSCALL write_bs(char *, bsd_t, int);
 #define NBPG		4096	/* number of bytes per page	*/
 #define FRAME0		1024	/* zero-th frame		*/
 #define NFRAMES 	1024	/* number of frames		*/
+
+/* Maximum number of backing stores */
+#define MAX_BS 16
 
 #define BSM_UNMAPPED	0
 #define BSM_MAPPED	1

@@ -3,7 +3,7 @@
 #include <proc.h>
 #include <paging.h>
 
-int get_bs(bsd_t bs_id, unsigned int npages) {
+SYSCALL get_bs(bsd_t bs_id, unsigned int npages) {
 
   /* requests a new mapping of npages with ID map_id */
   

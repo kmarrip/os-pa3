@@ -9,6 +9,8 @@ SYSCALL release_bs(bsd_t bs_id) {
   STATWORD    ps;
   disable(ps);
 
+  int result;
+
   if (bs_id < 0 || bs_id >= MAX_BS) {
     restore(ps);
     return SYSERR;
@@ -19,10 +21,9 @@ SYSCALL release_bs(bsd_t bs_id) {
     return SYSERR;
   }
 
-  bsm_tab[bs_id].bs_npages = 0;
- 
+  result = free_bsm(bs_id);
   restore(ps);
-  return OK;
+  return result;
 
   // kprintf("To be implemented!\n");
   //  return OK;

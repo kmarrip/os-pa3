@@ -56,6 +56,8 @@ SYSCALL kill(int pid)
 						/* fall through	*/
 	default:	pptr->pstate = PRFREE;
 	}
+	// if a process is killed, release all the backing store it might have
+	release_bs(proctab[currpid].store);
 	restore(ps);
 	return(OK);
 }

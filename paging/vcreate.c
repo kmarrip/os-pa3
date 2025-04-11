@@ -28,8 +28,38 @@ SYSCALL vcreate(procaddr,ssize,hsize,priority,name,nargs,args)
 	long	args;			/* arguments (treated like an	*/
 					/* array in the code)		*/
 {
-	kprintf("To be implemented!\n");
-	return OK;
+	STATWORD 	ps;
+	disable(ps);
+
+	// first create the process just like anyother process using the create function call
+	int pid = create(procaddr,ssize,priority,name,nargs,args);
+	// head of free memory list
+	struct mblock *bsBaseAddress;
+
+	// before allocating the memory on the backing store, check if any backing store is currently available
+	int bs_id;
+	if (get_bsm(&bs_id) == SYSERR){
+		restore(ps);
+		return SYSERR;
+	}
+	
+	// adding this maping to bsm_tab table
+	bsm_map(pid,4096,bs_id,hsize);
+
+	// wil the backing store get blocked if the heap is allocated ??
+
+	/* allocate heap size in corresponding backing store ID */
+	// allocate this mapping on to the 
+	bsBaseAddress =  (bs_id * BACKING_STORE_UNIT_SIZE) + BACKING_STORE_BASE;
+	bsBaseAddress->mlen = hsize * NBPG;
+	bsBaseAddress->mnext = NULL;
+
+	// set the vpages size
+	proctab[pid].vhpnpages = hsize;
+	proctab[pid].vmemlist->mnext = 4096 * NBPG;
+	
+	restore(ps);	
+	return pid;
 }
 
 /*------------------------------------------------------------------------

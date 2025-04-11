@@ -96,6 +96,42 @@ SYSCALL create(procaddr,ssize,priority,name,nargs,args)
 	*--saddr = 0;		/* %edi */
 	*pushsp = pptr->pesp = (unsigned long)saddr;
 
+
+	pd_t *pageDirEntry;
+	int frId = 0; // this is the first frame which is free
+
+	// get the free frame
+	get_frm(&frId);
+
+	// marking this frame as currently mapped, so thisn't used by any other process
+	frm_tab[frId].fr_status = FRM_MAPPED;
+
+	// marking the type of the frame as diretory frame, which contains metadata for the
+	// rest of the frames
+	frm_tab[frId].fr_type = FR_DIR;
+
+	// This frame is assigned this process id, is it easy to find what process has takenup a frame
+	// jsut by looking at the frame data structure itself
+	frm_tab[frId].fr_pid = pid;
+
+	// here we are setting the page directory base register, this is where
+	// the page directory is first set, frId is the first free frame
+	// NBPG is number of bytes per page, this calcluates the base page directory physical address
+	proctab[pid].pdbr = (frId + FRAME0) * NBPG;
+	
+	
+	pageDirEntry = proctab[pid].pdbr;
+	
+	// we are marking all the 1024 page entries to writable
+	for(i=0;i<1024;i++)
+		pageDirEntry[i].pd_write = 1;
+	
+	// the first 4 pages are shared by kernel and the process ?? why is this so --> TO DO
+	for(i=0;i<4;i++){
+		pageDirEntry[i].pd_pres = 1; 			// marking as present
+		pageDirEntry[i].pd_base = FRAME0 + i;   // 0th page is 0 frame , 1st page is 1 frame, 2nd page is 2 frame
+	}
+	
 	restore(ps);
 
 	return(pid);

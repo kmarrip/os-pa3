@@ -143,21 +143,21 @@ setsegs()
 	maxaddr = (char *)( 2048 * NBPG - 1); /* 8M size */
 				 	      /* the top 8M is used for backing store */
 						  
-	
+
 
 	psd = &gdt_copy[1];	/* kernel code segment */
 	np = ((int)&etext + NBPG-1) / NBPG;	/* # code pages */
 	psd->sd_lolimit = np;
 	psd->sd_hilimit = np >> 16;
-// #if 0
+#if 0
 	psd = &gdt_copy[2];	/* kernel data segment */
 	psd->sd_lolimit = 0xffff;
 	psd->sd_hilimit = 0xf;
 
 	psd = &gdt_copy[3];	/* kernel stack segment */
 	psd->sd_lolimit = 0xffff;
-	psd->sd_hilimit = 0xf; 
-// #endif
+	psd->sd_hilimit = 0xf;
+#endif
 
 	psd = &gdt_copy[4];	/* bootp code segment */
 	psd->sd_lolimit = npages;   /* Allows execution of 0x100000 CODE */
@@ -186,9 +186,8 @@ setsegs()
 /*
 	initsp = npages*NBPG  - 4;
 */
-	// initsp = 1024*NBPG  - 4;
-
-	initsp = 2048*NBPG  - 4;
+	
+	initsp = 1024*NBPG  - 4;
 }
 
 /*------------------------------------------------------------------------

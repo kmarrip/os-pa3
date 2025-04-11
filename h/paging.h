@@ -48,7 +48,7 @@ typedef struct{
   int bs_vpno;				/* starting virtual page number */
   int bs_npages;			/* number of pages in the store */
   int bs_sem;				/* semaphore mechanism ?	*/
-  bsd_t bs_id;       /* Backing store ID */
+  bsd_t bs_id;       /* Backing store ID */ // this shouls also tell us if the process has any virtual memory
 } bs_map_t;
 
 typedef struct{
@@ -69,8 +69,17 @@ typedef struct
 } bs_map_entry_t;
 
 
+typedef struct{
+  int frId;
+  int next;				
+  int frAge;
+}prQueue; // this might be needed when pages are linked and when we are trying to evict these pages
+
 extern bs_map_t bsm_tab[];
 extern fr_map_t frm_tab[];
+extern prQueue pr_qtab[];
+extern int prQHead;
+
 /* Prototypes for required API calls */
 SYSCALL xmmap(int, bsd_t, int);
 SYSCALL xmunmap(int);

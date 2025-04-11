@@ -72,3 +72,16 @@ SYSCALL free_frm(int i)
   kprintf("To be implemented!\n");
   return OK;
 }
+
+// This is needed in initialize.c
+// when the frames are first initialized, we need to 
+void init_pageReplacement_queue()
+{
+	int i = 0;
+	for (i = 0; i < NFRAMES; i++)
+	{
+		pr_qtab[i].frId = i;
+		pr_qtab[i].frAge = 0;
+		pr_qtab[i].next = -1;
+	}
+}

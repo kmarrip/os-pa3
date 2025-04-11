@@ -47,7 +47,12 @@ char 	vers[80];
 int	console_dev;		/* the console device			*/
 
 /*  added for the demand paging */
+
+int prQHead = -1; 
 int page_replace_policy = SC;
+bs_map_t bsm_tab[MAX_BS];
+fr_map_t frm_tab[NFRAMES];
+pr_queue pr_qtab[NFRAMES];
 
 /************************************************************************/
 /***				NOTE:				      ***/
@@ -129,12 +134,14 @@ sysinit()
 {
 	static	long	currsp;
 	int	i,j;
+	int frameId = 0;
 	struct	pentry	*pptr;
 	struct	sentry	*sptr;
 	struct	mblock	*mptr;
 	SYSCALL pfintr();
 
-	
+	pt_t *pageTabEntry;
+	pd_t *pageDirecEntry;        
 
 	numproc = 0;			/* initialize system variables */
 	nextproc = NPROC-1;
@@ -209,7 +216,58 @@ sysinit()
 	}
 
 	rdytail = 1 + (rdyhead=newqueue());/* initialize ready list */
+	
+	init_bsm(); /* initializing the bsm map table */
+	init_frm(); /* initializing the frame map table */
+	init_pageReplacement_queue();
 
+	int fra,pag;	
+
+	for(fra =0;fra<4;fra++){
+		// take only fist 4 pages and 
+		get_frm(&frameId);
+		frm_tab[frameId].fr_status = FRM_MAPPED;
+		frm_tab[frameId].fr_type = FR_TBL;
+		frm_tab[frameId].fr_pid = NULLPROC;
+
+		pageTabEntry = (FRAME0 + frameId) * NBPG;
+		for(pag = 0; pag< 1024; pag++){
+			pageTabEntry->pt_pres = 1;
+			pageTabEntry->pt_write = 1;
+			pageTabEntry->pt_user = 0;
+			pageTabEntry->pt_pwt = 0;
+			pageTabEntry->pt_pcd = 0;
+			pageTabEntry->pt_acc = 0;
+			pageTabEntry->pt_dirty = 0;
+			pageTabEntry->pt_mbz = 1;
+			pageTabEntry->pt_global=1;
+			pageTabEntry->pt_avail = 0;
+			pageTabEntry->pt_base = fra * FRAME0 + pag;
+			pageTabEntry++;
+		}
+	}
+	
+	get_frm(&frameId);		
+	proctab[NULLPROC].pdbr = (frameId + FRAME0) * NBPG;
+	frm_tab[frameId].fr_status = FRM_MAPPED;
+	frm_tab[frameId].fr_type = FR_DIR;
+	frm_tab[frameId].fr_pid = NULLPROC;
+	
+	pageDirecEntry = proctab[NULLPROC].pdbr;
+	
+	for(fra = 0;fra < 1024;fra++){
+		pageDirecEntry[fra].pd_write = 1;
+	}
+	for(fra = 0;fra < 4;fra++){
+		pageDirecEntry[fra].pd_pres = 1;
+		pageDirecEntry[fra].pd_base = FRAME0 + fra;
+	}
+	
+
+	// setting the register values for the pdbr
+	set_evec(14,(u_long)pfintr);
+	write_cr3(proctab[NULLPROC].pdbr);
+	enable_paging();
 
 	return(OK);
 }
